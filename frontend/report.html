@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Downloader</title>
+  <!-- Include Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <a href="./expense.html" id="goToHomeButton" class="btn btn-secondary mt-3">Go to Home</a>
+<div class="container mt-5">
+  <h1 class="mb-4">Download your expenses file</h1>
+ 
+  <a id="downloadLink" style="display: none" href="#" download>Download File</a>
+  <button id="downloadButton" class="btn btn-primary">Download</button>
+
+  <h2 class="mt-4">Previously Downloaded Files</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">File URL</th>
+      </tr>
+    </thead>
+    <tbody id="downloadHistory">
+      <!-- Table rows will be dynamically added here -->
+    </tbody>
+  </table>
+</div>
+
+<!-- Include Bootstrap JS and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.2/axios.min.js"></script>
+<script nonce="ijLkGK0cIOcpGpTikgJ+zQ==">
+  let downloadCount = 1;
+
+  // Simulate adding a new downloaded file URL to the table
+  function addDownloadedFile(url) {
+    const downloadHistory = document.getElementById("downloadHistory");
+    const newRow = document.createElement("tr");
+    newRow.innerHTML = `
+      <th scope="row">${downloadCount}</th>
+      <td><a href="${url}" target="_blank">${url}</a></td>
+    `;
+    downloadHistory.appendChild(newRow);
+    downloadCount++;
+  }
+
+  // Button click event to trigger file download
+  const downloadButton = document.getElementById("downloadButton");
+  const downloadLink = document.getElementById("downloadLink");
+  downloadButton.addEventListener("click", () => {
+
+    const token = localStorage.getItem("token");
+  axios.get('http://localhost:5000/user/download', { headers: {"Authorization" : token} })
+  .then((response) => {
+    console.log(response);
+    
+      if(response.status === 200){
+        const fileURL = response.data.fileURL;
+        addDownloadedFile(fileURL); // Simulate adding the downloaded file URL
+    downloadLink.href = fileURL;
+    downloadLink.click();
+          
+      } else {
+          throw new Error(response.data.message)
+      }
+
+  })
+  .catch((err) => {
+      showError(err)
+  });
+   
+  });
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    const token = localStorage.getItem("token");
+       axios('http://localhost:5000/user/previousdownloads',{
+    headers: { Authorization: token }})
+       .then((response)=>{
+                
+                response.data.response.forEach(element => {
+                    addDownloadedFile(element.url);
+                });
+       })
+  })
+</script>
+
+</body>
+</html>
